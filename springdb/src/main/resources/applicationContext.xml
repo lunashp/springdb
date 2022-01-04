@@ -1,7 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<!-- 데이터베이스 연결 정보 -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName"
+			value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy" />
+		<property name="url"
+			value="jdbc:log4jdbc:mysql://localhost:3306/yang?characterEncoding=UTF-8&amp;serverTimezone=UTC" />
+		<property name="username" value="yang" />
+		<property name="password" value="1106" />
+	</bean>
+
+
+	<!-- MyBatis 사용을 위한 환경 설정 클래스 -->
+	<bean class="org.mybatis.spring.SqlSessionFactoryBean"
+		id="sqlSessionFactory">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- Mapper 인터페이스를 스캔하는 설정 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="springdb.dao" />
+	</bean>
+
+	<!-- Hibernate 사용을 위한 bean 설정 -->
+	<bean
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
+		id="sessionFactory">
+		<!-- 연결할 데이터 베이스 설정 -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- 매핑 파일 경로 설정 -->
+		<property name="mappingResources">
+			<list>
+				<value>springdb/dao/member.hbm.xml</value>
+			</list>
+		</property>
+		<!-- 연결할 데이터 베이스 종류 설정 -->
+		<property name="hibernateProperties">
+			<value>
+				hibernate.dialect=org.hibernate.dialect.MySQLDialect
+			</value>
+		</property>
+	</bean>
+
+	<!-- Hibernate 트랜잭션 사용 설정 bean -->
+	<bean
+		class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+	<bean
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager"
+		id="transactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<tx:annotation-driven />
+
+
+
+	<!-- 어노테이션 설정을 하도록 설정 -->
+	<context:annotation-config />
+
+	<!-- 어노테이션이 붙은 클래스의 빈을 자동으로 생성하는 패키지 설정 -->
+	<context:component-scan
+		base-package="springdb, spring" />
 
 
 </beans>
